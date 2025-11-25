@@ -1,4 +1,5 @@
-const express = require('express');
+import express from 'express';
+
 const app = express();
 app.use(express.json());
 
@@ -9,11 +10,11 @@ app.post('/api/generate-script', async (req, res) => {
   if (!topic || topic.length < 3) {
     return res.status(400).json({ 
       success: false, 
-      error: "❌ Topic manquant ou trop court (min 3 caractères)" 
+      error: "❌ Topic manquant ou trop court (min 3 caracteres)" 
     });
   }
 
-  // Génération de script basée sur le topic (logique simplifiée)
+  // Génération de script basée sur le topic
   const hook = `[HOOK 3s] T'as déjà vu ${topic} ?`;
   const problem = `[PROBLEM 3s] Mais c'est trop cher / compliqué`;
   const solution = `[SOLUTION 3s] J'ai testé une alternative`;
