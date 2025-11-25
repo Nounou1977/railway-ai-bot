@@ -1,27 +1,44 @@
-import express from "express";
-
+const express = require('express');
 const app = express();
 app.use(express.json());
 
-let counter = 0;
-
-app.post("/api", (req, res) => {
-    counter++;
-    const input = req.body?.text || "No text provided";
-    const output = `Réponse automatique du bot pour: ${input}`;
-
-    res.json({
-        success: true,
-        requests_today: counter,
-        output: output
+// TON ENDPOINT QUI GÉNÈRE DES SCRIPTS VIRALS
+app.post('/api/generate-script', async (req, res) => {
+  const { topic, niche = "general" } = req.body;
+  
+  if (!topic || topic.length < 3) {
+    return res.status(400).json({ 
+      success: false, 
+      error: "❌ Topic manquant ou trop court (min 3 caractères)" 
     });
+  }
+
+  // Génération de script basée sur le topic (logique simplifiée)
+  const hook = `[HOOK 3s] T'as déjà vu ${topic} ?`;
+  const problem = `[PROBLEM 3s] Mais c'est trop cher / compliqué`;
+  const solution = `[SOLUTION 3s] J'ai testé une alternative`;
+  const cta = `[CTA 3s] Link en bio avant rupture`;
+  
+  const script = `${hook}\n${problem}\n${solution}\n${cta}`;
+  
+  res.json({
+    success: true,
+    topic: topic,
+    script: script,
+    word_count: script.split(' ').length,
+    estimated_duration: Math.ceil(script.split(' ').length / 2.5) + " secondes",
+    generated_at: new Date().toISOString()
+  });
 });
 
-app.get("/", (req, res) => {
-    res.send("Bot AI actif ✔️");
+// Endpoint de santé (pour RapidAPI)
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    service: 'ViralScript AI API',
+    version: '1.0.0'
+  });
 });
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log("Bot démarré sur le port " + port);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 API running on port ${PORT}`));
