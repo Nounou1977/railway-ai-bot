@@ -1,77 +1,65 @@
-// index.js (Version Gemini Gratuite Finale)
+// index.js (Version Gemini Officielle Stable)
 
-import express from 'express';
-import cors from 'cors';
-import { GoogleGenAI } from '@google-genai'; // NOUVEAU : Importation de la bonne librairie
+const express = require('express');
+const cors = require('cors');
+// NOUVEAU : Importation de la librairie officielle Google pour le modèle
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 2. Initialiser Gemini (utilise la clé GEMINI_API_KEY de Railway)
-// Le code sait chercher la variable d'environnement GEMINI_API_KEY
-const ai = new GoogleGenAI({}); 
+// 1. Initialiser Gemini avec votre clé API stockée sur Railway
+// NOTE: La variable GEMINI_API_KEY doit être définie sur Railway.
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// ROUTE PRINCIPALE : utilise l'IA Gemini pour générer le script
+// 2. Sélectionner le modèle gratuit et rapide (Flash)
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
 app.post('/generate-script', async (req, res) => {
     const { theme, niche, duration_seconds, tone } = req.body;
 
     if (!theme || !niche) {
-        return res.status(400).json({ error: "Missing required parameters: theme and niche are required." });
+        return res.status(400).json({ error: "Missing parameters: theme and niche required." });
     }
 
-    // 5. Construire le prompt pour Gemini (Demande de réponse en JSON)
-    const prompt = `Generate a unique, viral, high-quality short video script for TikTok.
-    Theme: "${theme}"
-    Niche: "${niche}"
-    Duration: ${duration_seconds} seconds
-    Tone: ${tone}
-    
-    The output must be a clean JSON object containing 'title', 'hook', 'scene_1', 'scene_2', 'scene_3', and 'call_to_action'. Do not include any text outside the JSON object.`;
+    // 3. Préparer les instructions pour l'IA
+    const prompt = `Generate a viral TikTok script. 
+    Theme: ${theme}, Niche: ${niche}, Duration: ${duration_seconds}s, Tone: ${tone}.
+    Return ONLY a JSON object with keys: title, hook, scene_1, scene_2, scene_3, call_to_action. Do not add markdown formatting.`;
 
-    console.log(`Received request: Theme=${theme}, Niche=${niche}`);
+    console.log(`Generating script for: ${theme}`);
 
     try {
-        // 6. Appeler l'API Gemini
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash', // Modèle rapide et GRATUIT
-            contents: prompt,
-            config: {
-                 responseMimeType: "application/json", // Demander à Gemini de répondre en JSON
-            }
-        });
+        // 4. Générer le contenu
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text();
 
-        // 7. Extraire la réponse JSON de Gemini
-        const scriptContent = response.text.trim();
+        // Nettoyage du texte pour s'assurer que c'est du JSON pur
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
         
-        // Le contenu JSON est parsé
-        const scriptJson = JSON.parse(scriptContent); 
+        const scriptJson = JSON.parse(text);
 
-        // 8. Renvoyer la réponse à RapidAPI
         res.status(200).json({ 
             success: true,
             script: scriptJson,
-            generated_by: "Google Gemini 2.5 Flash (Free Tier)"
+            generated_by: "Google Gemini 1.5 Flash"
         });
 
     } catch (error) {
-        console.error("Gemini API Error:", error.message);
+        console.error("Gemini Error:", error);
         res.status(500).json({ 
-            success: false,
-            message: "Failed to generate script via AI. Please check server logs.",
-            details: error.message
+            success: false, 
+            message: "Error generating script", 
+            details: error.message 
         });
     }
 });
 
-// Endpoint de santé
 app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        service: 'ViralScript AI API',
-        version: '3.0.0 (Gemini Free Tier)'
-    });
+    res.json({ status: 'ok', version: '3.0.0 (Gemini Stable)' });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 API running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server ready on port ${PORT}`));
