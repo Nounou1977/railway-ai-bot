@@ -36,7 +36,9 @@ app.post('/generate-script', async (req, res) => {
     try {
         // 6. Appeler l'API OpenAI
         const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo", // Modèle rapide pour le script
+            // *** CORRECTION APPLIQUÉE ICI ***
+            model: "gpt-3.5-turbo-1106", // MODÈLE MIS À JOUR QUI SUPPORT LE FORMAT JSON
+            // ******************************
             messages: [{
                 role: "user",
                 content: prompt
@@ -55,7 +57,7 @@ app.post('/generate-script', async (req, res) => {
         res.status(200).json({ 
             success: true,
             script: scriptJson,
-            generated_by: "OpenAI GPT-3.5 Turbo"
+            generated_by: "OpenAI GPT-3.5-turbo-1106"
         });
 
     } catch (error) {
@@ -71,11 +73,11 @@ app.post('/generate-script', async (req, res) => {
 
 // Endpoint de santé (inchangé)
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    service: 'ViralScript AI API',
-    version: '2.0.0 (AI Integrated)'
-  });
+    res.json({ 
+        status: 'ok', 
+        service: 'ViralScript AI API',
+        version: '2.0.0 (AI Integrated - Model Fixed)'
+    });
 });
 
 const PORT = process.env.PORT || 3000;
