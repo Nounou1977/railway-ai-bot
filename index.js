@@ -2,7 +2,7 @@
 
 import express from 'express';
 import cors from 'cors';
-import { GoogleGenAI } from 'google-genai'; // NOUVEAU : Importation de la bonne librairie
+import { GoogleGenAI } from '@google-genai'; // NOUVEAU : Importation de la bonne librairie
 
 const app = express();
 app.use(cors());
