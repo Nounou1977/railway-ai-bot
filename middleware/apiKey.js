@@ -12,7 +12,6 @@ const PRO_KEYS = new Set([
 ]);
 
 const usage = new Map();
-// Remise à zéro quotidienne du compteur (24h)
 setInterval(() => usage.clear(), 24 * 60 * 60 * 1000); 
 
 module.exports = (req, res, next) => {
