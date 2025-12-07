@@ -1,4 +1,4 @@
-// index.js (VERSION FINALE ET CORRIGÉE)
+// index.cjs (VERSION FINALE POUR RAILWAY/RAPIDAPI)
 
 // Importations des dépendances (Syntaxe CommonJS via require)
 const express = require('express');
@@ -7,6 +7,7 @@ const cors = require('cors');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Importation des middlewares de sécurité et de monétisation
+// Assurez-vous que ces fichiers se trouvent dans le dossier ./middleware/
 const timeout = require("./middleware/timeout");
 const apiKey = require("./middleware/apiKey");
 const burstLimit = require('./middleware/burstLimit'); 
@@ -17,14 +18,15 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // ==========================================================
-// 🚨 ORDRE DES MIDDLEWARES (Optimal RapidAPI)
+// 🚨 ORDRE DES MIDDLEWARES (Sécurité et Monétisation)
 // ==========================================================
-app.use(timeout);         // 1. Évite les blocages
-app.use(apiKey);          // 2. Authentifie et gère le quota FREE
-app.use(burstLimit);      // 3. Limite les attaques rapides (Anti-DDOS)
+app.use(timeout);         // 1. Coupe les requêtes trop longues
+app.use(apiKey);          // 2. Authentifie la clé et gère le quota FREE/PRO
+app.use(burstLimit);      // 3. Limite les pics de requêtes (Anti-DDOS)
 // ==========================================================
 
 // 1. Initialiser Gemini
+// La clé est lue depuis les variables d'environnement de Railway (GEMINI_API_KEY)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -33,7 +35,7 @@ app.post('/generate-script', validateInput, async (req, res) => {
     // Les variables sont garanties d'exister par le validateInput
     const { theme, niche, duration_seconds, tone } = req.body;
     
-    // La variable 'plan' vient du middleware apiKey
+    // La variable 'plan' est attachée par le middleware apiKey
     const userPlan = req.userPlan || 'FREE'; 
 
     // 3. Préparer les instructions pour l'IA
@@ -70,7 +72,7 @@ app.post('/generate-script', validateInput, async (req, res) => {
     }
 });
 
-// Health check
+// Health check (Vérification de l'état)
 app.get('/', (req, res) => {
     res.json({ status: 'ok', version: '3.0.0 (Gemini Stable)' });
 });
