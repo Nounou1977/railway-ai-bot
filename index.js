@@ -1,53 +1,49 @@
-// index.js (Version Gemini Officielle Stable)
+// index.js (VERSION FINALE POUR RAPIDAPI/GEMINI)
 
 // Importations des dépendances
 const express = require('express');
+const bodyParser = require("body-parser"); 
 const cors = require('cors');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Importation des middlewares de sécurité (Assurez-vous que ces fichiers existent)
-// Vous devez créer ces fichiers dans le dossier /middleware/
+// Importation des middlewares de sécurité et de monétisation
+const timeout = require("./middleware/timeout");
+const apiKey = require("./middleware/apiKey");
 const burstLimit = require('./middleware/burstLimit'); 
-const rateLimit = require('./middleware/rateLimit'); 
+const validateInput = require('./middleware/validateInput'); 
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
 // ==========================================================
-// 🚨 INTÉGRATION DES MIDDLEWARES DE SÉCURITÉ (Position Critique)
+// 🚨 ORDRE DES MIDDLEWARES (Optimal RapidAPI)
 // ==========================================================
-// Ces lignes appliquent la limite de burst et le rate limit
-// à TOUTES les requêtes faites à votre API.
-app.use(burstLimit); 
-app.use(rateLimit); 
+app.use(timeout);         // 1. Bloque les requêtes lentes (8s)
+app.use(apiKey);          // 2. Authentifie l'utilisateur (FREE/PRO) et gère le quota journalier
+app.use(burstLimit);      // 3. Limite les attaques rapides (Anti-DDOS)
 // ==========================================================
 
-
-// 1. Initialiser Gemini avec votre clé API stockée sur Railway
-// NOTE: La variable GEMINI_API_KEY doit être définie sur Railway.
+// 1. Initialiser Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// 2. Sélectionner le modèle gratuit et rapide (Flash)
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-app.post('/generate-script', async (req, res) => {
-    // Note: Les middlewares de sécurité ont déjà été exécutés avant cette ligne.
-    const { theme, niche, duration_seconds, tone } = req.body;
 
-    if (!theme || !niche) {
-        return res.status(400).json({ error: "Missing parameters: theme and niche required." });
-    }
+app.post('/generate-script', validateInput, async (req, res) => {
+    // Les variables sont garanties d'exister par le validateInput
+    const { theme, niche, duration_seconds, tone } = req.body;
+    
+    // La variable 'plan' vient du middleware apiKey
+    const userPlan = req.userPlan || 'FREE'; 
 
     // 3. Préparer les instructions pour l'IA
     const prompt = `Generate a viral TikTok script. 
     Theme: ${theme}, Niche: ${niche}, Duration: ${duration_seconds}s, Tone: ${tone}.
     Return ONLY a JSON object with keys: title, hook, scene_1, scene_2, scene_3, call_to_action. Do not add markdown formatting.`;
 
-    console.log(`Generating script for: ${theme}`);
+    console.log(`Generating script for: ${theme} (Plan: ${userPlan})`);
 
     try {
-        // 4. Générer le contenu
         const result = await model.generateContent(prompt);
         const response = await result.response;
         let text = response.text();
@@ -59,6 +55,7 @@ app.post('/generate-script', async (req, res) => {
 
         res.status(200).json({ 
             success: true,
+            plan: userPlan,
             script: scriptJson,
             generated_by: "Google Gemini 1.5 Flash"
         });
@@ -73,11 +70,11 @@ app.post('/generate-script', async (req, res) => {
     }
 });
 
-app.get('/health', (req, res) => {
-    // Cette route n'est PAS limitée par les middlewares si elle est avant `app.use(burstLimit)`.
-    // Mais ici elle est après, donc elle est sécurisée.
+// Health check
+app.get('/', (req, res) => {
     res.json({ status: 'ok', version: '3.0.0 (Gemini Stable)' });
 });
 
+// Lancer serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server ready on port ${PORT}`));
