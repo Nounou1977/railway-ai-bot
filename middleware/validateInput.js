@@ -1,13 +1,19 @@
 // middleware/validateInput.js
 module.exports = (req, res, next) => {
-  const text = req.body?.text;
+  const { theme, niche, duration_seconds } = req.body;
 
-  if (!text || typeof text !== "string") {
-    return res.status(400).json({ error: "Missing or invalid 'text' field" });
+  if (!theme || typeof theme !== "string" || !niche || typeof niche !== "string") {
+    return res.status(400).json({ 
+        success: false, 
+        message: "Missing required parameters: 'theme' and 'niche' must be non-empty strings." 
+    });
   }
 
-  if (text.length > 300) {
-    return res.status(413).json({ error: "Text too long (max 300 chars)" });
+  if (theme.length + niche.length > 200) { 
+    return res.status(413).json({ 
+        success: false, 
+        message: "Input parameters too long. Combined theme/niche must be under 200 characters to ensure cost control." 
+    });
   }
 
   next();
