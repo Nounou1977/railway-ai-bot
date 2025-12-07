@@ -1,6 +1,6 @@
-// index.js (VERSION FINALE POUR RAPIDAPI/GEMINI)
+// index.js (VERSION FINALE ET CORRIGÉE)
 
-// Importations des dépendances
+// Importations des dépendances (Syntaxe CommonJS via require)
 const express = require('express');
 const bodyParser = require("body-parser"); 
 const cors = require('cors');
@@ -19,8 +19,8 @@ app.use(bodyParser.json());
 // ==========================================================
 // 🚨 ORDRE DES MIDDLEWARES (Optimal RapidAPI)
 // ==========================================================
-app.use(timeout);         // 1. Bloque les requêtes lentes (8s)
-app.use(apiKey);          // 2. Authentifie l'utilisateur (FREE/PRO) et gère le quota journalier
+app.use(timeout);         // 1. Évite les blocages
+app.use(apiKey);          // 2. Authentifie et gère le quota FREE
 app.use(burstLimit);      // 3. Limite les attaques rapides (Anti-DDOS)
 // ==========================================================
 
