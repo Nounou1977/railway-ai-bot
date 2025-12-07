@@ -1,21 +1,25 @@
 // middleware/apiKey.js
-
 const FREE_KEYS = new Set([
-  "free_123" // remplace par ta clé FREE
+  // REMPLACEZ PAR LES CLÉS FREE DE VOTRE PLAN RAPIDAPI (ou clés de test)
+  "cle_test_free_1", 
+  "cle_test_free_2" 
 ]);
 
 const PRO_KEYS = new Set([
-  "pro_123" // remplace par ta clé PRO
+  // REMPLACEZ PAR LES CLÉS PRO DE VOTRE PLAN RAPIDAPI
+  "cle_test_pro_1", 
+  "cle_test_pro_2" 
 ]);
 
 const usage = new Map();
-setInterval(() => usage.clear(), 24 * 60 * 60 * 1000); // reset daily
+// Remise à zéro quotidienne du compteur (24h)
+setInterval(() => usage.clear(), 24 * 60 * 60 * 1000); 
 
 module.exports = (req, res, next) => {
-  const key = req.headers["x-api-key"];
+  const key = req.headers["x-rapidapi-key"] || req.headers["x-api-key"]; 
 
   if (!key) {
-    return res.status(401).json({ error: "Missing API Key" });
+    return res.status(401).json({ success: false, message: "Missing API Key" });
   }
 
   if (PRO_KEYS.has(key)) {
@@ -27,10 +31,11 @@ module.exports = (req, res, next) => {
     req.userPlan = "FREE";
     const count = usage.get(key) || 0;
 
-    if (count >= 100) {
+    if (count >= 100) { 
       return res.status(429).json({
-        error: "Free limit reached",
-        upgrade_url: "https://rapidapi.com/YOU/api/micro-summarizer/pricing"
+        success: false,
+        message: "Free Tier limit reached. Please upgrade your plan.",
+        upgrade_url: "https://rapidapi.com/VOTRE_NOM/api/VOTRE_API/pricing"
       });
     }
 
@@ -38,5 +43,5 @@ module.exports = (req, res, next) => {
     return next();
   }
 
-  return res.status(401).json({ error: "Invalid API Key" });
+  return res.status(401).json({ success: false, message: "Invalid API Key" });
 };
