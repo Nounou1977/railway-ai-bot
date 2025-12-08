@@ -1,4 +1,4 @@
-// index.cjs (VERSION FINALE AVEC MODÈLE GEMINI STABLE)
+// index.cjs (VERSION FINALE ET PRÊTE POUR LA MONÉTISATION)
 
 const express = require('express');
 const bodyParser = require("body-parser"); 
@@ -15,6 +15,9 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// 🟢 FIX 1 : Ajout de la confiance au proxy pour corriger l'avertissement 'X-Forwarded-For'
+app.set('trust proxy', 1); 
+
 // ==========================================================
 // 🚨 Middlewares APPLIQUÉS GLOBALEMENT
 // ==========================================================
@@ -23,8 +26,8 @@ app.use(timeout); // Coupe les requêtes trop longues
 
 // 3. Initialiser Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-// 🔑 CORRECTION CRITIQUE ICI : Utilisation du modèle stable 'gemini-1.0-pro'
-const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+// 🟢 FIX 2 : Utilisation du modèle stable 'gemini-1.0-pro' pour éviter le 404
+const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); 
 
 
 // 🔑 ROUTE PRINCIPALE SÉCURISÉE AVEC MIDDLEWARES
@@ -57,7 +60,7 @@ app.post(
                 success: true,
                 plan: userPlan,
                 script: scriptJson,
-                generated_by: "Google Gemini 1.0 Pro" // Mise à jour du nom
+                generated_by: "Google Gemini 1.0 Pro"
             });
 
         } catch (error) {
@@ -73,7 +76,7 @@ app.post(
 
 // 💚 Health check
 app.get('/', (req, res) => {
-    res.json({ status: 'ok', version: '3.0.3 (Gemini 1.0 Pro Fixed)' }); 
+    res.json({ status: 'ok', version: '3.0.4 (Final Code)' }); 
 });
 
 // Lancer serveur
