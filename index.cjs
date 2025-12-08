@@ -37,7 +37,6 @@ app.post(
     burstLimit,       // 2. Limite des pics de requêtes
     validateInput,    // 3. Validation des paramètres d'entrée
     async (req, res) => {
-        // ... (votre logique de code ici)
         const { theme, niche, duration_seconds, tone } = req.body;
         const userPlan = req.userPlan || 'FREE';
 
@@ -60,7 +59,7 @@ app.post(
                 success: true,
                 plan: userPlan,
                 script: scriptJson,
-                generated_by: "Google Gemini Pro" // Mise à jour de la version pour le nom générique
+                generated_by: "Google Gemini Pro"
             });
 
         } catch (error) {
@@ -76,10 +75,9 @@ app.post(
 
 // 💚 Health check
 app.get('/', (req, res) => {
-    res.json({ status: 'ok', version: '3.0.4 (Final Code - Pro)' }); // Mise à jour de la version pour tracer le changement
+    res.json({ status: 'ok', version: '3.0.4 (Final Code - Pro)' }); // DOIT CONTENIR "- Pro"
 });
 
 // Lancer serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server ready on port ${PORT}`));
-// Tentative finale de déploiement du code v3.0.4
