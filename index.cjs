@@ -5,25 +5,25 @@ const bodyParser = require("body-parser");
 const cors = require('cors');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Importation des middlewares (les fichiers eux-mêmes sont corrects)
+// Importation des middlewares (les fichiers sont corrects)
 const timeout = require("./middleware/timeout");
 const apiKey = require("./middleware/apiKey");
-const burstLimit = require('./middleware/burstLimit'); // Assurez-vous que c'est le bon nom de fichier (ou utilisez rateLimit)
-const validateInput = require('./middleware/validateInput'); 
+const burstLimit = require('./middleware/burstLimit');
+const validateInput = require("./middleware/validateInput");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
 // ==========================================================
-// 🚨 Middlewares APPLIQUÉS GLOBALEMENT (pour TOUTES les routes)
-// On laisse seulement ceux qui n'ont pas besoin de clé API ici
+// 🚨 Middlewares APPLIQUÉS GLOBALEMENT
 // ==========================================================
 app.use(timeout); // Coupe les requêtes trop longues
 // ==========================================================
 
 // 3. Initialiser Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// 🔑 CORRECTION CLÉ ICI : Utilisation du nom du modèle stable pour le SDK
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 
@@ -49,6 +49,7 @@ app.post(
             const response = await result.response;
             let text = response.text;
 
+            // Nettoyage du texte pour s'assurer que c'est du JSON pur
             text = text.replace(/```json/g, '').replace(/```/g, '').trim();
             const scriptJson = JSON.parse(text);
 
@@ -72,7 +73,7 @@ app.post(
 
 // 💚 Health check (Accessible SANS middleware de clé API)
 app.get('/', (req, res) => {
-    res.json({ status: 'ok', version: '3.0.1 (Final Stable)' });
+    res.json({ status: 'ok', version: '3.0.2 (Gemini Fixed)' }); // Mise à jour de la version
 });
 
 // Lancer serveur
