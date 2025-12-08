@@ -1,82 +1,78 @@
-// index.cjs (VERSION FINALE, CommonJS, pour Railway)
+// index.cjs (VERSION FINALE ET SÉCURISÉE)
 
-// 1. Importations des dépendances (Syntaxe CommonJS via require)
 const express = require('express');
 const bodyParser = require("body-parser"); 
 const cors = require('cors');
-// Utilisation du bon nom de classe et de package pour l'initialisation
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// 2. Importation des middlewares de sécurité et de monétisation
-// Assurez-vous que ces fichiers se trouvent dans le dossier ./middleware/
+// Importation des middlewares (les fichiers eux-mêmes sont corrects)
 const timeout = require("./middleware/timeout");
 const apiKey = require("./middleware/apiKey");
-const burstLimit = require('./middleware/burstLimit'); 
+const burstLimit = require('./middleware/burstLimit'); // Assurez-vous que c'est le bon nom de fichier (ou utilisez rateLimit)
 const validateInput = require('./middleware/validateInput'); 
 
 const app = express();
 app.use(cors());
-// body-parser est utilisé pour la gestion du JSON
 app.use(bodyParser.json());
 
 // ==========================================================
-// 🚨 ORDRE DES MIDDLEWARES (Optimal pour RapidAPI)
+// 🚨 Middlewares APPLIQUÉS GLOBALEMENT (pour TOUTES les routes)
+// On laisse seulement ceux qui n'ont pas besoin de clé API ici
 // ==========================================================
-app.use(timeout);         // 1. Coupe les requêtes trop longues
-app.use(apiKey);          // 2. Authentifie la clé et gère le quota
-app.use(burstLimit);      // 3. Limite les pics de requêtes
+app.use(timeout); // Coupe les requêtes trop longues
 // ==========================================================
 
-// 3. Initialiser Gemini (utilise la clé de process.env.GEMINI_API_KEY)
+// 3. Initialiser Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 
-app.post('/generate-script', validateInput, async (req, res) => {
-    // Les variables sont garanties d'exister par le validateInput
-    const { theme, niche, duration_seconds, tone } = req.body;
-    
-    // La variable 'plan' vient du middleware apiKey
-    const userPlan = req.userPlan || 'FREE'; 
+// 🔑 ROUTE PRINCIPALE SÉCURISÉE AVEC MIDDLEWARES
+app.post(
+    '/generate-script',
+    apiKey,           // 1. Authentification de la clé RapidAPI
+    burstLimit,       // 2. Limite des pics de requêtes
+    validateInput,    // 3. Validation des paramètres d'entrée
+    async (req, res) => {
+        // ... (votre logique de code ici)
+        const { theme, niche, duration_seconds, tone } = req.body;
+        const userPlan = req.userPlan || 'FREE';
 
-    // Préparer les instructions pour l'IA
-    const prompt = `Generate a viral TikTok script. 
-    Theme: ${theme}, Niche: ${niche}, Duration: ${duration_seconds}s, Tone: ${tone}.
-    Return ONLY a JSON object with keys: title, hook, scene_1, scene_2, scene_3, call_to_action. Do not add markdown formatting.`;
+        const prompt = `Generate a viral TikTok script. 
+        Theme: ${theme}, Niche: ${niche}, Duration: ${duration_seconds}s, Tone: ${tone}.
+        Return ONLY a JSON object with keys: title, hook, scene_1, scene_2, scene_3, call_to_action. Do not add markdown formatting.`;
 
-    console.log(`Generating script for: ${theme} (Plan: ${userPlan})`);
+        console.log(`Generating script for: ${theme} (Plan: ${userPlan})`);
 
-    try {
-        // Correction de la méthode d'appel pour le SDK Node.js
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let text = response.text;
+        try {
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            let text = response.text;
 
-        // Nettoyage du texte pour s'assurer que c'est du JSON pur
-        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        
-        const scriptJson = JSON.parse(text);
+            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            const scriptJson = JSON.parse(text);
 
-        res.status(200).json({ 
-            success: true,
-            plan: userPlan,
-            script: scriptJson,
-            generated_by: "Google Gemini 1.5 Flash"
-        });
+            res.status(200).json({ 
+                success: true,
+                plan: userPlan,
+                script: scriptJson,
+                generated_by: "Google Gemini 1.5 Flash"
+            });
 
-    } catch (error) {
-        console.error("Gemini Error:", error);
-        res.status(500).json({ 
-            success: false, 
-            message: "Error generating script", 
-            details: error.message 
-        });
+        } catch (error) {
+            console.error("Gemini Error:", error);
+            res.status(500).json({ 
+                success: false, 
+                message: "Error generating script", 
+                details: error.message 
+            });
+        }
     }
-});
+);
 
-// Health check
+// 💚 Health check (Accessible SANS middleware de clé API)
 app.get('/', (req, res) => {
-    res.json({ status: 'ok', version: '3.0.0 (Gemini Stable)' });
+    res.json({ status: 'ok', version: '3.0.1 (Final Stable)' });
 });
 
 // Lancer serveur
