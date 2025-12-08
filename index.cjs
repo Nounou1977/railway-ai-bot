@@ -26,8 +26,8 @@ app.use(timeout); // Coupe les requêtes trop longues
 
 // 3. Initialiser Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-// 🟢 FIX 2 : Utilisation du modèle stable 'gemini-1.0-pro' pour éviter le 404
-const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); 
+// 🔴 FIX ULTIME : Changement du modèle de "gemini-1.0-pro" à "gemini-pro" pour résoudre le 404 de la clé API
+const model = genAI.getGenerativeModel({ model: "gemini-pro" }); 
 
 
 // 🔑 ROUTE PRINCIPALE SÉCURISÉE AVEC MIDDLEWARES
@@ -60,7 +60,7 @@ app.post(
                 success: true,
                 plan: userPlan,
                 script: scriptJson,
-                generated_by: "Google Gemini 1.0 Pro"
+                generated_by: "Google Gemini Pro" // Mise à jour de la version pour le nom générique
             });
 
         } catch (error) {
@@ -76,7 +76,7 @@ app.post(
 
 // 💚 Health check
 app.get('/', (req, res) => {
-    res.json({ status: 'ok', version: '3.0.4 (Final Code)' }); 
+    res.json({ status: 'ok', version: '3.0.4 (Final Code - Pro)' }); // Mise à jour de la version pour tracer le changement
 });
 
 // Lancer serveur
