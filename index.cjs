@@ -82,3 +82,4 @@ app.get('/', (req, res) => {
 // Lancer serveur
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server ready on port ${PORT}`));
+// Tentative finale de déploiement du code v3.0.4
