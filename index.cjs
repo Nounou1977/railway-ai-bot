@@ -1,4 +1,4 @@
-// index.cjs (VERSION FINALE ET SÉCURISÉE)
+// index.cjs (VERSION FINALE AVEC MODÈLE GEMINI STABLE)
 
 const express = require('express');
 const bodyParser = require("body-parser"); 
@@ -23,8 +23,8 @@ app.use(timeout); // Coupe les requêtes trop longues
 
 // 3. Initialiser Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-// 🔑 CORRECTION CLÉ ICI : Utilisation du nom du modèle stable pour le SDK
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// 🔑 CORRECTION CRITIQUE ICI : Utilisation du modèle stable 'gemini-1.0-pro'
+const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
 
 
 // 🔑 ROUTE PRINCIPALE SÉCURISÉE AVEC MIDDLEWARES
@@ -57,7 +57,7 @@ app.post(
                 success: true,
                 plan: userPlan,
                 script: scriptJson,
-                generated_by: "Google Gemini 1.5 Flash"
+                generated_by: "Google Gemini 1.0 Pro" // Mise à jour du nom
             });
 
         } catch (error) {
@@ -71,9 +71,9 @@ app.post(
     }
 );
 
-// 💚 Health check (Accessible SANS middleware de clé API)
+// 💚 Health check
 app.get('/', (req, res) => {
-    res.json({ status: 'ok', version: '3.0.2 (Gemini Fixed)' }); // Mise à jour de la version
+    res.json({ status: 'ok', version: '3.0.3 (Gemini 1.0 Pro Fixed)' }); 
 });
 
 // Lancer serveur
