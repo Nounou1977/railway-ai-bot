@@ -21,8 +21,9 @@ app.use(timeout);
 // 3. Initialiser Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// ✅ CORRECTION 2024 : "gemini-pro" → "gemini-1.5-flash" (GRATUIT)
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+// ✅ CORRECTION : "gemini-pro" → "gemini-flash-latest" (GRATUIT)
+const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+
 // 🔑 ROUTE PRINCIPALE
 app.post(
     '/generate-script',
@@ -42,7 +43,7 @@ app.post(
         try {
             const result = await model.generateContent(prompt);
             const response = await result.response;
-            let text = response.text;
+            let text = response.text();
 
             text = text.replace(/```json/g, '').replace(/```/g, '').trim();
             const scriptJson = JSON.parse(text);
@@ -51,7 +52,7 @@ app.post(
                 success: true,
                 plan: userPlan,
                 script: scriptJson,
-                generated_by: "Google Gemini 1.5 Flash" // ✅ Mis à jour
+                generated_by: "Google Gemini Flash (Latest)"
             });
 
         } catch (error) {
@@ -67,7 +68,7 @@ app.post(
 
 // 💚 Health check
 app.get('/', (req, res) => {
-  res.json({ success: true, version: "3.0.7 (Fixed Model)" });
+  res.json({ success: true, version: "3.0.8 (Final Fix)" });
 });
 
 // Lancer serveur
