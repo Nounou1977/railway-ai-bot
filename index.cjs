@@ -1,4 +1,4 @@
-// index.cjs (VERSION VERCEL - GRATUITE)
+// index.cjs (VERSION VERCEL - GRATUITE & STABLE)
 
 const express = require('express');
 const bodyParser = require("body-parser"); 
@@ -21,8 +21,8 @@ app.use(timeout);
 // 3. Initialiser Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// ✅ MODÈLE GRATUIT ET STABLE
-const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+// ✅ MODÈLE DISPONIBLE DANS VOTRE COMPTE (21 600 req/jour)
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-001" });
 
 // 🔑 ROUTE PRINCIPALE
 app.post(
@@ -52,7 +52,7 @@ app.post(
                 success: true,
                 plan: userPlan,
                 script: scriptJson,
-                generated_by: "Google Gemini 1.0 Pro"
+                generated_by: "Google Gemini 2.0 Flash 001"
             });
 
         } catch (error) {
@@ -68,8 +68,8 @@ app.post(
 
 // 💚 Health check
 app.get('/', (req, res) => {
-  res.json({ success: true, version: "3.0.9 (Vercel)" });
+  res.json({ success: true, version: "3.0.9 (Vercel + Model Fix)" });
 });
 
-// ✅ EXPORT POUR VERCEL
+// ✅ EXPORT POUR VERCEL (SUPPRIME app.listen)
 module.exports = app;
