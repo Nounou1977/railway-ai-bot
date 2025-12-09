@@ -67,7 +67,7 @@ app.post(
 
 // 💚 Health check
 app.get('/', (req, res) => {
-   res.json({ status: 'ok', version: '3.0.6 (FORCED DEPLOY)' });
+  res.json({ success: true, version: "3.0.7 (Fixed Model)" });
 });
 
 // Lancer serveur
