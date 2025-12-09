@@ -22,7 +22,7 @@ app.use(timeout);
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ✅ CORRECTION 2024 : "gemini-pro" → "gemini-1.5-flash" (GRATUIT)
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
 // 🔑 ROUTE PRINCIPALE
 app.post(
     '/generate-script',
